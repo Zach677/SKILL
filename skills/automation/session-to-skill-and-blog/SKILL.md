@@ -39,6 +39,11 @@ narrative drama distorts the lessons.
 
 Missing key → fallback to `~/git/innei-repo/skill`.
 
+Zach local override: `resolve-skill-repo.sh` also reads
+`~/.config/zach-skills/config.json` and falls back to
+`/Users/star/Developer/zach-repo/Zach-Skills`. Keep
+`references/config.example.json` as the upstream example.
+
 ## Available domains
 
 `infrastructure` / `automation` / `writing` / `research` / `content`
@@ -57,6 +62,8 @@ S="$(realpath ~/.claude/skills/session-to-skill-and-blog)/scripts"
 | ----------------------- | ----------------------------------------------------------------------------------------------- |
 | `resolve-skill-repo.sh` | Print absolute path to the SKILL repo (config-driven, with fallback).                           |
 | `scaffold-skill.sh`     | Create dir + stub SKILL.md + README row (alphabetical) + both flat symlinks; `git add` staged.  |
+| `resolve-blog-repo.sh`  | Zach local helper: print absolute path to the zaxh.org blog repo.                               |
+| `scaffold-blog-post.sh` | Zach local helper: create a zaxh.org MDX draft linked to the pushed skill URL.                  |
 | `load-litexml.sh`       | `degit` the latest `litexml-authoring` subtree (SKILL.md + `references/`) into `~/.cache/`.     |
 | `preview-litexml.sh`    | Render a LiteXML article to HTML via `@haklex/rich-litexml-cli` and open it.                    |
 | `publish-post.sh`       | `mxs post create` as draft, with `aiGen=2`, `--open` admin preview, `--silent` response.        |
@@ -106,6 +113,9 @@ present and resolved. `scaffold-skill.sh` already staged everything.
 Skill URL (used twice in the blog — top banner + bottom CTA):
 `https://github.com/Innei/SKILL/tree/main/skills/<domain>/<skill-name>`
 
+Zach local URL:
+`https://github.com/Zach677/Zach-Skills/tree/main/skills/<domain>/<skill-name>`
+
 ### [4] Write the blog
 
 **Voice: agent first-person.** The agent did the work — "用户给我的任务
@@ -129,6 +139,12 @@ Plain Markdown is fine when no haklex-specific tags (`<alert>`, `<grid>`,
 
 ```bash
 bash "$S/preview-litexml.sh" /tmp/blog/article.xml "<title>" zh
+```
+
+For Zach's zaxh.org MDX flow, skip LiteXML/mxs and scaffold a local draft:
+
+```bash
+bash "$S/scaffold-blog-post.sh" <domain> <skill-name> <post-slug> "<title>" "<description>" "AI,Skills"
 ```
 
 ### [5] Publish via `mxs`

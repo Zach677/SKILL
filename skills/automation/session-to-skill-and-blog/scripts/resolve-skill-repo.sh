@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # Print the absolute path to the SKILL repo.
-# Reads `skill_repo_dir` from ~/.config/innei-skills/config.json; falls back to
-# ~/git/innei-repo/skill. Expands a leading ~ to $HOME.
+# Reads `skill_repo_dir` from ~/.config/zach-skills/config.json first, then
+# the upstream ~/.config/innei-skills/config.json; falls back to Zach-Skills.
+# Expands a leading ~ to $HOME.
 set -euo pipefail
 
-CFG="${XDG_CONFIG_HOME:-$HOME/.config}/innei-skills/config.json"
+ZACH_CFG="${XDG_CONFIG_HOME:-$HOME/.config}/zach-skills/config.json"
+INNEI_CFG="${XDG_CONFIG_HOME:-$HOME/.config}/innei-skills/config.json"
 DIR=""
-if [ -f "$CFG" ] && command -v jq >/dev/null 2>&1; then
-  DIR="$(jq -r '.skill_repo_dir // empty' "$CFG" 2>/dev/null || true)"
-fi
-DIR="${DIR:-$HOME/git/innei-repo/skill}"
+for CFG in "$ZACH_CFG" "$INNEI_CFG"; do
+  if [ -f "$CFG" ] && command -v jq >/dev/null 2>&1; then
+    DIR="$(jq -r '.skill_repo_dir // empty' "$CFG" 2>/dev/null || true)"
+    [ -z "$DIR" ] || break
+  fi
+done
+DIR="${DIR:-/Users/star/Developer/zach-repo/Zach-Skills}"
 DIR="${DIR/#\~/$HOME}"
 echo "$DIR"

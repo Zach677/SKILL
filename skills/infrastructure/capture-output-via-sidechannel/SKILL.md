@@ -1,6 +1,11 @@
 ---
 name: capture-output-via-sidechannel
-description: Use when a runner, CI step, container, or orchestrator executes a task whose stdout/stderr you cannot retrieve afterwards — no log API, no shell access, output stream not captured, or logs evicted before you can read them. The pattern: have the task itself write its captured output into a data store you CAN read (SQL row, Redis key, mounted file, public webhook).
+description: >
+  Use when a runner, CI step, container, or orchestrator executes a task whose
+  stdout/stderr you cannot retrieve afterwards: no log API, no shell access,
+  output stream not captured, or logs evicted before you can read them. The
+  pattern is to have the task itself write its captured output into a data
+  store you can read.
 ---
 
 # Sidechannel Output Capture

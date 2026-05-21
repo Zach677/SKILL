@@ -8,7 +8,7 @@ description: >
   continue", or any request to capture the current session state for
   continuation elsewhere.
 metadata:
-  author: innei
+  author: zach
   version: "0.1.0"
 ---
 
