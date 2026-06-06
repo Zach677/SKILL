@@ -71,7 +71,6 @@ S="$(realpath ~/.claude/skills/session-to-skill-and-blog)/scripts"
 | `resolve-blog-repo.sh`  | Zach local helper: print absolute path to the zaxh.org blog repo.                               |
 | `scaffold-blog-post.sh` | Zach local helper: create a zaxh.org MDX draft linked to the pushed skill URL.                  |
 | `load-litexml.sh`       | `degit` the latest `litexml-authoring` subtree (SKILL.md + `references/`) into `~/.cache/`.     |
-| `preview-litexml.sh`    | Render a LiteXML article to HTML via `@haklex/rich-litexml-cli` and open it.                    |
 | `publish-post.sh`       | `mxs post create` as draft, with `aiGen=2`, `--open` admin preview, `--silent` response.        |
 | `get-post.sh`           | `mxs post get <slug> --output xml` — round-trip step 1.                                         |
 | `update-post.sh`        | `mxs post update <slug> --file …` — round-trip step 2.                                          |
@@ -124,9 +123,80 @@ Zach local URL:
 
 ### [4] Write the blog
 
-**Voice: agent first-person.** The agent did the work — "用户给我的任务
-是… / 我撞过最迷惑的一面墙…". Writing in Innei's first-person
-mis-attributes labor.
+**Voice: pick one of two personas.** Decide by what the blog is actually
+about: the *process* or the *thing*.
+
+| Persona                   | Use when                                                                                                            | "I" refers to |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `agent` first-person      | The blog narrates a session/dogfood run — symptom → investigation → fix → why (e.g. the nextjs → react-router post) | the agent     |
+| `site-owner` first-person | The blog is about a tool, workflow, format, or system that Innei designed and owns                                  | Innei         |
+
+Selection rule: if the main subject is a *process the agent went through*,
+use `agent`. If the main subject is a *thing Innei built* (CLI, format,
+workflow, infra), use `site-owner`. Writing in agent voice when the
+ownership is Innei's misattributes the design labor to the executor.
+
+When the post needs both (Innei's design intent plus a dogfood run that
+exposed an issue), stay in `site-owner` voice and refer to the agent in
+third person, e.g. "an agent run surfaced X, so I fixed Y". Do not switch
+personas mid-post.
+
+#### `site-owner` style — Willison + Abramov + Antirez
+
+When writing in `site-owner` persona, combine three reference styles. Each
+contributes a distinct property; together they keep the prose honest,
+structured, and assertive.
+
+- **Willison transparency.** Show your work. Quote real error output, commit
+  hashes, exact version numbers, the actual file path you edited. No mystery,
+  no hand-waving. Link to source liberally. When something failed, say so —
+  including which approach you tried first and why it didn't work.
+- **Abramov arc.** Each section has setup → tension → payoff. Open with an
+  observation, a constraint, or a question. Build the reader's expectation.
+  Then resolve. Use concrete examples to drive abstract points, not the other
+  way around. The reader should feel they're discovering something *with*
+  you, not being lectured at.
+- **Antirez 断语.** Short, declarative sentences for conclusions. No
+  hedging. "X is wrong." "Y works." "Don't do Z." Stand-alone lines that
+  carry the weight of a decision. Use them at section breaks and at the end
+  of paragraphs that earn them.
+
+#### Punctuation
+
+- **Em-dashes (——) sparingly.** The default punctuation is `。` `，` `：` `；`
+  or parentheses. Reserve `——` for genuine asides, mid-sentence
+  interruptions, or true em-dash thought-jumps. A row of em-dashes in close
+  succession reads as lazy structure.
+- Prefer two short sentences over one long sentence joined by an em-dash.
+- Use `：` to introduce a list, example, or definition.
+- Use `（）` for parenthetical asides that are tightly bound to the surrounding
+  sentence.
+- Quote tag names and code identifiers in `<code>...</code>`, not `「...」`.
+
+#### Visuals
+
+Prefer Excalidraw over Mermaid in `site-owner` posts. The hand-drawn feel
+matches the personal voice, and Excalidraw is more flexible for the kinds
+of diagrams `site-owner` posts tend to need:
+
+| Diagram type                       | Use         | Why                                                            |
+| ---------------------------------- | ----------- | -------------------------------------------------------------- |
+| Decision tree / branching choice   | Excalidraw  | Diamond + labeled branches reads cleaner than Mermaid          |
+| Architecture lanes (named columns) | Excalidraw  | Lane backgrounds with title + bullet body are highly readable  |
+| Timeline / event chain             | Excalidraw  | Vertical spine + color-coded entries beats a Mermaid gantt     |
+| Pipeline (linear N-step flow)      | Excalidraw  | Boxes + arrows in a row, hand-drawn rectangles feel right      |
+| Strict sequence diagram            | Mermaid     | When precise actor lifelines + ordered messages are required   |
+| Dense flowchart with many edges    | Mermaid     | Auto-routing handles edge crossings better                     |
+
+Embed Excalidraw inline as `<excalidraw><![CDATA[{...scene JSON...}]]></excalidraw>`.
+Use the canonical color palette (light blue / light purple / light yellow /
+light green / light pink). Position text elements explicitly; do not rely
+on auto-centering across blog renderers.
+
+For `site-owner` posts of any substance, **aim for at least three Excalidraw
+diagrams** — one for the high-level pipeline, one for the architecture
+overview, one for the most important decision or chain narrated in prose.
+More is fine. Use Mermaid only when the diagram type column above says so.
 
 **Structure:** opening (task + sub-tasks + top URL banner) → one section
 per "act" mirroring the skill's steps → each act follows symptom →
@@ -144,8 +214,13 @@ Plain Markdown is fine when no haklex-specific tags (`<alert>`, `<grid>`,
 `<details>`, …) are needed. Preview the rendered article:
 
 ```bash
-bash "$S/preview-litexml.sh" /tmp/blog/article.xml "<title>" zh
+mxs preview /tmp/blog/article.xml
 ```
+
+`mxs preview` is envelope-aware: it strips the `<mxpost>` / `<mxnote>`
+wrapper, auto-detects `--variant`, and opens the HTML in the system
+browser by default. Pass `--print` to dump to stdout, `--save <path>` to
+write a file without opening.
 
 For Zach's zaxh.org MDX flow, skip LiteXML/mxs and scaffold a local draft:
 
@@ -182,14 +257,15 @@ the originating session as the asset-ization receipt.
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | Blog before skill                                    | Skill first. Always.                                                                 |
 | SKILL.md too long (all code inline)                  | Extract ≥ 15-line code to `scripts/`. Target ≤ 250 lines.                            |
-| Blog in user (Innei's) first-person                  | Agent first-person throughout.                                                       |
+| Picking a persona by reflex instead of subject       | Process narrative → `agent`. Owned tool/format/workflow → `site-owner`. Apply the selection rule. |
+| Switching personas mid-post                          | Pick one and stay. If both are needed, keep `site-owner` voice and refer to the agent in third person. |
 | Pitfalls in prose only, no table                     | Pitfalls table is mandatory; it's the most-grep'd section.                           |
 | Skill URL not embedded in blog (both top + bottom)   | Banner at top, CTA at bottom.                                                        |
 | `--no-verify` to bypass pre-commit hook              | Pre-commit invariants must all be in the same commit; fix the root cause instead.    |
 | Hardcoding `~/git/innei-repo/skill` in shell         | `bash "$S/resolve-skill-repo.sh"` — config-driven with fallback.                     |
 | Using this skill's containing repo as the target repo | Resolver output is authoritative. On Zach's machine it should print `Zach-Skills`.    |
 | Stale local `litexml-authoring` clone                | `bash "$S/load-litexml.sh"` refreshes via degit on every call.                       |
-| `pnpm --silent litexml …` from a haklex worktree     | `preview-litexml.sh` uses `npx @haklex/rich-litexml-cli@latest` — no local clone.    |
+| `pnpm --silent litexml …` from a haklex worktree     | `mxs preview <file>` — envelope-aware, no local clone, opens browser by default.     |
 | Skill written in Chinese                             | Skill in English (artifact). Blog in Innei's chosen language (default Chinese).      |
 | `--state publish` on `post create`                   | Always create as draft. `mxs post publish <slug>` only after Innei approves preview. |
 | Re-running `post create` to edit                     | Round-trip: `get-post.sh` → edit → `update-post.sh`.                                 |
@@ -208,8 +284,12 @@ the originating session as the asset-ization receipt.
       table** + verification checklist.
 - [ ] Pre-commit hook passed; `git push` succeeded.
 - [ ] Skill URL resolves in a browser; embedded in blog at top + bottom.
-- [ ] Blog voice is agent first-person; previews cleanly via
-      `preview-litexml.sh`.
+- [ ] Blog voice picks `agent` or `site-owner` per the selection rule and
+      stays in that persona throughout; previews cleanly via `mxs preview`.
+- [ ] For `site-owner` posts: Willison transparency (real errors / commits /
+      paths quoted), Abramov arc (setup → tension → payoff per section),
+      Antirez 断语 (short declarative conclusions). Em-dashes used sparingly.
+      At least three Excalidraw diagrams.
 - [ ] `mxs auth whoami` returned the expected user.
 - [ ] `<category>` reuses an existing slug (or Innei explicitly approved
       a new one).
