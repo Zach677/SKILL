@@ -71,40 +71,65 @@ metadata:
 - [ ]
 EOF
 
-# Insert README row alphabetically. Supports both SKILL's domain tables and
-# Zach-Skills' single skill table under "## Skills".
+# Insert README row alphabetically. Supports domain tables like
+# "### Automation" and a fallback single table under "## Skills".
 python3 - "$REPO/README.md" "$DOMAIN" "$NAME" "$PURPOSE" <<'PY'
 import pathlib, re, sys
 readme = pathlib.Path(sys.argv[1])
 domain, name, purpose = sys.argv[2], sys.argv[3], sys.argv[4]
 text = readme.read_text()
+lines = text.splitlines(keepends=True)
 
 heading = domain.capitalize()
 row = f"| [`{name}`](skills/{domain}/{name}/SKILL.md) | {purpose} |"
 
-domain_pat = re.compile(
-    rf"(### {re.escape(heading)}\n.*?\| ----- \| ------- \|\n)((?:\|.*\n)+)",
-    re.S,
-)
-flat_pat = re.compile(
-    r"(## Skills\n.*?\| ----- \| ------- \|\n)((?:\|.*\n)+)",
-    re.S,
-)
+def find_table(label):
+    heading_index = None
+    for i, line in enumerate(lines):
+        if line.rstrip("\n") == label:
+            heading_index = i
+            break
+    if heading_index is None:
+        return None
 
-m = domain_pat.search(text)
+    separator_index = None
+    for i in range(heading_index + 1, len(lines)):
+        stripped = lines[i].strip()
+        if i != heading_index + 1 and stripped.startswith("#"):
+            return None
+        if stripped == "| ----- | ------- |":
+            separator_index = i
+            break
+    if separator_index is None:
+        return None
+
+    start = separator_index + 1
+    end = start
+    while end < len(lines) and lines[end].startswith("| "):
+        end += 1
+    return start, end
+
 label = f"### {heading}"
-if not m:
-    m = flat_pat.search(text)
+table = find_table(label)
+if table is None:
     label = "## Skills"
-if not m:
+    table = find_table(label)
+if table is None:
     sys.exit(f"error: skill table not found in README.md")
 
-rows = m.group(2).splitlines(keepends=True)
-rows.append(row + "\n")
-rows.sort(key=lambda l: (re.match(r"\| \[`([^`]+)`\]", l.strip()) or re.match(r"", "")).group(1)
-                       if re.match(r"\| \[`([^`]+)`\]", l.strip()) else "")
-new = m.group(1) + "".join(rows)
-readme.write_text(text[:m.start()] + new + text[m.end():])
+start, end = table
+rows = lines[start:end]
+if not any(f"skills/{domain}/{name}/SKILL.md" in existing for existing in rows):
+    rows.append(row + "\n")
+rows.sort(
+    key=lambda l: (
+        re.match(r"\| \[`([^`]+)`\]", l.strip()).group(1)
+        if re.match(r"\| \[`([^`]+)`\]", l.strip())
+        else ""
+    )
+)
+lines[start:end] = rows
+readme.write_text("".join(lines))
 print(f"inserted README row under {label}")
 PY
 

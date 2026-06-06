@@ -2,8 +2,9 @@
 name: session-to-skill-and-blog
 description: >
   Turn a completed non-trivial engineering session into a paired durable
-  artifact: (1) a reusable skill under Innei's personal SKILL repo, and (2) a
-  published blog post that narrates the journey and embeds the skill URL.
+  artifact: (1) a reusable skill under the resolver-selected personal skills
+  repo, and (2) a published blog post that narrates the journey and embeds the
+  skill URL.
   Triggers on "把这个过程写成 skill 再写一篇 blog"、"沉淀一下这次的折腾"、
   "productize this session"、"publish this as a skill and a writeup".
 metadata:
@@ -15,6 +16,11 @@ metadata:
 
 Capture a hard-won session as a **pair**: an operational skill (durable
 artifact) and a narrative blog (discoverability layer linking to it).
+
+For Zach's machine, the target skill repo is Zach's own repo:
+`/Users/star/Developer/zach-repo/Zach-Skills`. Never infer the target repo from
+the location of this `session-to-skill-and-blog` skill file; always resolve it
+with `scripts/resolve-skill-repo.sh` before writing.
 
 ## When to use
 
@@ -39,9 +45,9 @@ narrative drama distorts the lessons.
 
 Missing key → fallback to `~/git/innei-repo/skill`.
 
-Zach local override: `resolve-skill-repo.sh` also reads
-`~/.config/zach-skills/config.json` and falls back to
-`/Users/star/Developer/zach-repo/Zach-Skills`. Keep
+Zach local override: `resolve-skill-repo.sh` reads
+`~/.config/zach-skills/config.json` before the upstream Innei config and falls
+back to `/Users/star/Developer/zach-repo/Zach-Skills`. Keep
 `references/config.example.json` as the upstream example.
 
 ## Available domains
@@ -181,6 +187,7 @@ the originating session as the asset-ization receipt.
 | Skill URL not embedded in blog (both top + bottom)   | Banner at top, CTA at bottom.                                                        |
 | `--no-verify` to bypass pre-commit hook              | Pre-commit invariants must all be in the same commit; fix the root cause instead.    |
 | Hardcoding `~/git/innei-repo/skill` in shell         | `bash "$S/resolve-skill-repo.sh"` — config-driven with fallback.                     |
+| Using this skill's containing repo as the target repo | Resolver output is authoritative. On Zach's machine it should print `Zach-Skills`.    |
 | Stale local `litexml-authoring` clone                | `bash "$S/load-litexml.sh"` refreshes via degit on every call.                       |
 | `pnpm --silent litexml …` from a haklex worktree     | `preview-litexml.sh` uses `npx @haklex/rich-litexml-cli@latest` — no local clone.    |
 | Skill written in Chinese                             | Skill in English (artifact). Blog in Innei's chosen language (default Chinese).      |
