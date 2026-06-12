@@ -67,7 +67,7 @@ S="$(realpath ~/.claude/skills/session-to-skill-and-blog)/scripts"
 | Script                  | What it does                                                                                    |
 | ----------------------- | ----------------------------------------------------------------------------------------------- |
 | `resolve-skill-repo.sh` | Print absolute path to the SKILL repo (config-driven, with fallback).                           |
-| `scaffold-skill.sh`     | Create dir + stub SKILL.md + README row (alphabetical) + both flat symlinks; `git add` staged.  |
+| `scaffold-skill.sh`     | Create dir + stub SKILL.md + README row (alphabetical) + both flat symlinks + user-level links in `~/.agents/skills` and `~/.claude/skills`; `git add` staged. |
 | `resolve-blog-repo.sh`  | Zach local helper: print absolute path to the zaxh.org blog repo.                               |
 | `scaffold-blog-post.sh` | Zach local helper: create a zaxh.org MDX draft linked to the pushed skill URL.                  |
 | `load-litexml.sh`       | `degit` the latest `litexml-authoring` subtree (SKILL.md + `references/`) into `~/.cache/`.     |

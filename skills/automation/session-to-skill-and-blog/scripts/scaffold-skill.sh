@@ -139,6 +139,14 @@ ln -sf "../../skills/$DOMAIN/$NAME" ".claude/skills/$NAME"
 
 git add "skills/$DOMAIN/$NAME" "README.md" ".agent/skills/$NAME" ".claude/skills/$NAME"
 
+# Install user-level links (outside the repo, not staged) so agents in any
+# cwd can load the new skill, matching how existing skills are installed.
+for agent_home in "$HOME/.agents/skills" "$HOME/.claude/skills"; do
+  [ -d "$agent_home" ] || continue
+  ln -sfn "$TARGET" "$agent_home/$NAME"
+  echo "linked: $agent_home/$NAME -> $TARGET"
+done
+
 cat <<EOF
 
 scaffolded: $TARGET
